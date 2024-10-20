@@ -13,7 +13,7 @@ import OpenAI from "openai";
 
 const openai = new OpenAI({
   organization: 'org-lcqlt3GI79pyECNO4jXNOuyJ',
-  apiKey: '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'
+  apiKey: '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'  //'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'
 });
 
 const messagesToSend = {
@@ -159,7 +159,7 @@ app.post("/", async (req, res) => {
     {
         MOmessage = requestBody.message.contact_message.text_message.text;
     }
-    console.log("metadata:" , JSON.parse(requestBody.message_metadata)); 
+//    console.log("metadata:" , JSON.parse(requestBody.message_metadata)); 
     conversation_metadata = requestBody.message_metadata ? JSON.parse(requestBody.message_metadata) : {};
    
 
@@ -169,22 +169,27 @@ app.post("/", async (req, res) => {
 
     //generating image if ready but sending questions until that
     if (!["ready"].includes(MOmessage)) {
- 	    console.log("it is a message"); 
+ 	var keyword = 0; 
+	    console.log("it is a message"); 
     	if (["sweater", "west", "bolero"].includes(MOmessage)) {
 	           console.log("the text is keyword", messagesToSend.model);  
-       		   MTmessage = {"message": messagesToSend.models};
+       		keyword = 1;    
+		MTmessage = {"message": messagesToSend.models};
 		         conversation_metadata["item"] = metadata;
       }
       if (["woman", "man"].includes(MOmessage)) {
              console.log("the text is keyword", messagesToSend.colors);  
-             MTmessage = {"message": messagesToSend.colors};
+             keyword = 1; 
+	     MTmessage = {"message": messagesToSend.colors};
              conversation_metadata["model"] = metadata;
       }
       if (["blue", "red", "yellow", "green"].includes(MOmessage)) {
         console.log("the text is keyword", messagesToSend.ready);  
-        MTmessage = {"message": messagesToSend.ready};
+        keyword = 1; 
+	MTmessage = {"message": messagesToSend.ready};
         conversation_metadata["color"] = metadata ;
       }
+      if (!keyword) conversation_metadata["extra"] = MOmessage;
 
 		  const sendMessage = {
             		app_id: requestBody.app_id,
@@ -248,12 +253,13 @@ app.post("/", async (req, res) => {
       let item =  conversation_metadata.item ?  conversation_metadata.item : "west";
       let color =  conversation_metadata.color ?  conversation_metadata.color : "red";
       let wear =  conversation_metadata.item == "bolero" ?  "cloth" : "jeans";
-      
+      let extra = conversation_metadata.extra ? conversation_metadata.extra : "";  
+		    
       let prompt = "Create an image of a european adult 80kg " + model + " in a knitted " + item + ".";
       prompt += " The sweater is in modern style with cozy, " + color + " yarn suitable for eastern, probably with an easter motiv.";
       prompt += " The model's body should be fully visible wearing " + wear + ".  I want to have the models foot as part of the image too.";
       prompt += " The background of the image should be kept simple.";
-      prompt += " The models should not be too lightweighted. Ever. Best if they are normal weigthed.";
+      prompt += " The models should not be too lightweighted. Ever. Best if they are normal weigthed." + extra;
                   
       //generating image
 	    console.log("generating image of ", conversation_metadata); 
